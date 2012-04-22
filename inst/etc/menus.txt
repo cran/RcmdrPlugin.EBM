@@ -1,0 +1,15 @@
+# Some Rcmdr menus for the EBM package
+# When the plug-in is loaded, these menus are merged with the standard Rcmdr menus
+
+#   type    menu/item      operation/parent  label                              command/menu                activation    install?
+menu    ebmMenu       topMenu         ""                                      ""                          ""    ""
+item    topMenu         cascade         "EBM"                                 ebmMenu                   ""                      ""
+
+item    ebmMenu       command         "Therapy..."              fncEBMTherapy        "factorsP(2)"    ""
+item    ebmMenu       command         "Prognosis..."              fncEBMPrognosis        "factorsP(2)"    ""
+item    ebmMenu       command         "Diagnosis..."              fncEBMDiagnosis        "factorsP(2)"    ""
+
+item    ebmMenu       command         "Enter two-way table..."              enterTableEBMCrossTab        ""    ""
+
+item    ebmMenu       command         "Post-test probability..."              fncEBMPostTestWin        ""    ""
+

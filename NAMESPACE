@@ -1,0 +1,7 @@
+# Mannualy edited.
+
+# Export all names that don't start with .
+exportPattern("^[^\\.]")
+
+# Import all packages listed as Imports and others
+import(Rcmdr, stats)
