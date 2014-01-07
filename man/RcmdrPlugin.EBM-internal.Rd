@@ -4,6 +4,7 @@
 \alias{fncNbPercents}
 \alias{fncEBMCrossTab}
 \alias{fncEBMCrossTabWin}
+\alias{fncEBMTherapy}
 \alias{fncEBMPrognosis}
 \alias{fncEBMDiagnosis}
 \alias{enterTableEBMCrossTab}

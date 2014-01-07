@@ -1,6 +1,6 @@
 # To do:  column chart/mosaic plot.
 
-fncGetConfIntText <- function(estimate, CIinf, CIsup, .faraCI=FALSE) {
+fncGetConfIntText <- function(estimate, CIinf, CIsup, decimals=2, .faraCI=FALSE) {
 	if(.faraCI == TRUE) {
 		paste(round(estimate, decimals), " (", round(CIinf, decimals), " - ", round(CIsup, decimals), ")", sep="")
 	} else {
@@ -24,27 +24,63 @@ fncNbPercents <- function(.Table, .decimals) {
 }
 
 fncEBMCrossTab <- function(.table, .x, .y, .xlab, .ylab, .percents, .chisq, .expected, .chisqComp, .fisher, .indicators, .decimals=2) {
-library(abind, pos=4)
+#library(abind, pos=4)
 
 if (class(.x) != 'factor') {
 	.Table = .table
 } else {
 	.Table <- xtabs(~.x+.y, exclude = c(NA, NaN))
-	.Table <<- .Table
+	#.Table <<- .Table#<--
+	#assign(".Table", .Table, envir = .GlobalEnv)
 }
 
-.TableOriginal <<- .Table
+.TableOriginal <- .Table#<--
+#assign(".TableOriginal", .Table, envir = .GlobalEnv)
 
 .TableExample <- matrix(c("a", "b", "c", "d"), 2, 2, byrow=TRUE)
 
 .decimals <- as.numeric(.decimals)
-decimals <<- .decimals
+decimals <- .decimals#<--
+#assign("decimals", .decimals, envir = .GlobalEnv)
+
+if (.percents == "row") {
+  #cat("\n# Row Percentages\n")
+  command <- paste("fncNbPercents(.Table, ", .decimals, ") # Row Percentages", sep="") # to allow the table to be exported to html through Export plugin
+  doItAndPrint(paste(".TheTable <- ", command, sep=""))
+  #assign(".TheTable", justDoIt(command), envir=.GlobalEnv)
+  doItAndPrint(".TheTable")
+  #doItAndPrint(paste(".TheTable <- ", command, sep=""))
+  #doItAndPrint(".Test")
+}
+if (.percents == "column") {
+  #cat("\n# Column Percentages\n")
+  #print(t(fncNbPercents(t(.Table), .decimals)))
+  #command <- "t(fncNbPercents(t(.Table), .decimals))"
+  command <- paste("t(fncNbPercents(t(.Table), ", .decimals, ")) # Column Percentages", sep="") 
+  doItAndPrint(paste(".TheTable <- ", command, sep=""))
+  #assign(".TheTable", justDoIt(command), envir=.GlobalEnv)
+  doItAndPrint(".TheTable")
+  #doItAndPrint(paste(".TheTable <- ", command, sep=""))
+  #doItAndPrint(".Test")
+}
+if (.percents == "total") {
+  #cat("\n# Percentages of Total\n")
+  #print(totPercents(.Table))
+  #command <- "totPercents(.Table, .decimals)"
+  command <- paste("totPercents(.Table, ", .decimals, ") # Percentages of Total", sep="") 
+  doItAndPrint(paste(".TheTable <- ", command, sep=""))
+  #assign(".TheTable", justDoIt(command), envir=.GlobalEnv)
+  doItAndPrint(".TheTable")
+  #doItAndPrint(paste(".TheTable <- ", command, sep=""))
+  #doItAndPrint(".Test")
+}
+
 
 if (.indicators != "dg") {# to avoid showing chi square test for diagnostic tests
         if (.chisq == '1') {#code from Rcmdr - John Fox
             command <- "chisq.test(.Table, correct=FALSE)"
             #logger(paste(".Test <- ", command, sep=""))
-            assign(".Test", justDoIt(command), envir=.GlobalEnv)
+            doItAndPrint(paste(".Test <- ", command, sep=""))
             doItAndPrint(".Test")
             if (.expected == '1') doItAndPrint(".Test$expected # Expected Counts")
             warnText <- NULL
@@ -59,7 +95,7 @@ if (.indicators != "dg") {# to avoid showing chi square test for diagnostic test
                 doItAndPrint(command)
                 }
             #logger("remove(.Test)")
-            remove(.Test, envir=.GlobalEnv)
+            #remove(.Test, envir=.GlobalEnv)
             }
 
 	if (.fisher == '1') {#code from Rcmdr - John Fox
@@ -69,65 +105,41 @@ if (.indicators != "dg") {# to avoid showing chi square test for diagnostic test
 }
 
 
-	if (.percents == "row") {
-		cat("\n# Row Percentages\n")
-		command <- "fncNbPercents(.Table, decimals)" # to allow the table to be exported to html through Export plugin
-		logger(paste(".TheTable <- ", command, sep=""))
-		assign(".TheTable", justDoIt(command), envir=.GlobalEnv)
-		doItAndPrint(".TheTable")
-	}
-        if (.percents == "column") {
-		cat("\n# Column Percentages\n")
-		#print(t(fncNbPercents(t(.Table), .decimals)))
-		command <- "t(fncNbPercents(t(.Table), decimals))"
-		logger(paste(".TheTable <- ", command, sep=""))
-		assign(".TheTable", justDoIt(command), envir=.GlobalEnv)
-		doItAndPrint(".TheTable")
-	}
-        if (.percents == "total") {
-		cat("\n# Percentages of Total\n")
-		#print(totPercents(.Table))
-		command <- "totPercents(.Table, decimals)"
-		logger(paste(".TheTable <- ", command, sep=""))
-		assign(".TheTable", justDoIt(command), envir=.GlobalEnv)
-		doItAndPrint(".TheTable")
-	}
-
 
 if ((.x == "") || (length(levels(.x))==2 && length(levels(.y))==2) ) {
-	require(epiR)
+	#require(epiR)
 
     if (.indicators == "pg") {
 	#epi.2by2(dat = .TableOriginal , method = "cohort.count", conf.level = 0.95, units = 1, verbose = FALSE)
 
-	.epi <- epi.2by2(dat = .TableOriginal , method = "cohort.count", conf.level = 0.95, units = 1, verbose = TRUE)
+	.epi <- epi.2by2(dat = .TableOriginal , method = "cohort.count", conf.level = 0.95, units = 1)
 
 	cat("\n# Notations for calculations\n")
 	colnames(.TableExample) <- c("Disease +", "Disease -")
 	rownames(.TableExample) <- c("Exposure +", "Exposure -")
 	print(.TableExample)
 	
-	texttest <- paste("\n# Risk difference = ", fncGetConfIntText(round(100*.epi$AR$est,.decimals), round(100*.epi$AR$lower,.decimals), round(100*.epi$AR$upper,.decimals)), " %. Computed using formula: [a / (a + b)] - [c / (c + d)]", sep="")
+	texttest <- paste("\n# Risk difference = ", fncGetConfIntText(round(100*.epi$rval$AR$est,.decimals), round(100*.epi$rval$AR$lower,.decimals), round(100*.epi$rval$AR$upper,.decimals), .decimals), " %. Computed using formula: [a / (a + b)] - [c / (c + d)]", sep="")
 	cat(texttest)
-	texttest <- paste("\n# Relative risk = ", fncGetConfIntText(round(.epi$RR$est,.decimals), round(.epi$RR$lower,.decimals), round(.epi$RR$upper,.decimals)), " %. Computed using formula: [a / (a + b)] / [c / (c + d)]", sep="")
+	texttest <- paste("\n# Relative risk = ", fncGetConfIntText(round(.epi$rval$RR$est,.decimals), round(.epi$rval$RR$lower,.decimals), round(.epi$rval$RR$upper,.decimals), .decimals), " %. Computed using formula: [a / (a + b)] / [c / (c + d)]", sep="")
 	cat(texttest)
-	texttest <- paste("\n# Odds ratio = ", fncGetConfIntText(round(.epi$OR$est,.decimals), round(.epi$OR$lower,.decimals), round(.epi$OR$upper,.decimals)), " . Computed using formula: (a / b) / (c / d)", sep="")
+	texttest <- paste("\n# Odds ratio = ", fncGetConfIntText(round(.epi$rval$OR$est,.decimals), round(.epi$rval$OR$lower,.decimals), round(.epi$rval$OR$upper,.decimals), .decimals), " . Computed using formula: (a / b) / (c / d)", sep="")
 	cat(texttest)
 	
 	cat("\n# To find more about the results, and about how confidence intervals were computed, type ?epi.2by2 .\n")
     }
         if (.indicators == "th") {
 	#epi.2by2(dat = .TableOriginal , method = "cohort.count", conf.level = 0.95, units = 1, verbose = FALSE)
-	.epi <- epi.2by2(dat = .TableOriginal , method = "cohort.count", conf.level = 0.95, units = 1, verbose = TRUE)
+	.epi <- epi.2by2(dat = .TableOriginal , method = "cohort.count", conf.level = 0.95, units = 1)
 	
 	cat("\n# Notations for calculations\n")
 	colnames(.TableExample) <- c("Event +", "Event -")
 	rownames(.TableExample) <- c("Treatment", "Control")
 	print(.TableExample)
 
-	.ARR.est <-  - .epi$AR$est
-	.ARR1 <-  - .epi$AR$lower
-	.ARR2 <-  - .epi$AR$upper
+	.ARR.est <-  - .epi$rval$AR$est
+	.ARR1 <-  - .epi$rval$AR$lower
+	.ARR2 <-  - .epi$rval$AR$upper
 	.ARR.lower <- min(.ARR1, .ARR2)
 	.ARR.upper <- max(.ARR1, .ARR2)
 	
@@ -141,9 +153,9 @@ if ((.x == "") || (length(levels(.x))==2 && length(levels(.y))==2) ) {
 		.NNT.upper <- 1/0
 	}
 
-	.RR.est <-  .epi$RR$est
-	.RR1 <-  .epi$RR$lower
-	.RR2 <-  .epi$RR$upper
+	.RR.est <-  .epi$rval$RR$est
+	.RR1 <-  .epi$rval$RR$lower
+	.RR2 <-  .epi$rval$RR$upper
 	.RR.lower <- min(.RR1, .RR2)
 	.RR.upper <- max(.RR1, .RR2)
 
@@ -153,15 +165,15 @@ if ((.x == "") || (length(levels(.x))==2 && length(levels(.y))==2) ) {
 	.RRR.lower <- min(.RRR1, .RRR2)
 	.RRR.upper <- max(.RRR1, .RRR2)
 
-	texttest <- paste("\n# Absolute risk reduction (ARR) = ", fncGetConfIntText(round(100*.ARR.est,.decimals), round(100*.ARR.lower,.decimals), round(100*.ARR.upper,.decimals)), " %. Computed using formula: [c / (c + d)] - [a / (a + b)] ", sep="")
+	texttest <- paste("\n# Absolute risk reduction (ARR) = ", fncGetConfIntText(round(100*.ARR.est,.decimals), round(100*.ARR.lower,.decimals), round(100*.ARR.upper,.decimals), .decimals), " %. Computed using formula: [c / (c + d)] - [a / (a + b)] ", sep="")
 	cat(texttest)
-	texttest <- paste("\n# Relative risk = ", fncGetConfIntText(round(.RR.est,.decimals), round(.RR.lower,.decimals), round(.RR.upper,.decimals)), " %. Computed using formula: [c / (c + d)] / [a / (a + b)]", sep="")
+	texttest <- paste("\n# Relative risk = ", fncGetConfIntText(round(.RR.est,.decimals), round(.RR.lower,.decimals), round(.RR.upper,.decimals), .decimals), " %. Computed using formula: [c / (c + d)] / [a / (a + b)]", sep="")
 	cat(texttest)
-	texttest <- paste("\n# Odds ratio = ", fncGetConfIntText(round(.epi$OR$est,.decimals), round(.epi$OR$lower,.decimals), round(.epi$OR$upper,.decimals)), ". Computed using formula: (a / b) / (c / d)", sep="")
+	texttest <- paste("\n# Odds ratio = ", fncGetConfIntText(round(.epi$rval$OR$est,.decimals), round(.epi$rval$OR$lower,.decimals), round(.epi$rval$OR$upper,.decimals), .decimals), ". Computed using formula: (a / b) / (c / d)", sep="")
 	cat(texttest)
-	texttest <- paste("\n# Number needed to treat = ", fncGetConfIntText(round(.NNT.est,.decimals), round(.NNT.lower,.decimals), round(.NNT.upper,.decimals)), ". Computed using formula: 1 / ARR", sep="")
+	texttest <- paste("\n# Number needed to treat = ", fncGetConfIntText(round(.NNT.est,.decimals), round(.NNT.lower,.decimals), round(.NNT.upper,.decimals), .decimals), ". Computed using formula: 1 / ARR", sep="")
 	cat(texttest)	
-	texttest <- paste("\n# Relative risk reduction = ", fncGetConfIntText(round(100*.RRR.est,.decimals), round(100*.RRR.lower,.decimals), round(100*.RRR.upper,.decimals)), " %. Computed using formula: { [c / (c + d)] - [a / (a + b)] } / [c / (c + d)] ", sep="")
+	texttest <- paste("\n# Relative risk reduction = ", fncGetConfIntText(round(100*.RRR.est,.decimals), round(100*.RRR.lower,.decimals), round(100*.RRR.upper,.decimals), .decimals), " %. Computed using formula: { [c / (c + d)] - [a / (a + b)] } / [c / (c + d)] ", sep="")
 	cat(texttest)
 	
   cat("\n# To find more about the results, and about how confidence intervals were computed, type ?epi.2by2 . The confidence limits for NNT were computed as 1/ARR confidence limits. The confidence limits for RRR were computed as 1 - RR confidence limits.\n")
@@ -175,32 +187,32 @@ if ((.x == "") || (length(levels(.x))==2 && length(levels(.y))==2) ) {
  
 	#.dd <- epi.tests(a = .TableOriginal[1,1], b = .TableOriginal[1,2], c = .TableOriginal[2,1], d = .TableOriginal[2,2], conf.level = 0.95)
 
-	.dd <- epi.tests(.TableOriginal, conf.level = 0.95, verbose = TRUE)
-	texttest <- paste("\n# Sensitivity (Se) = ", fncGetConfIntText(round(100*.dd$se$est,.decimals), round(100*.dd$se$lower,.decimals), round(100*.dd$se$upper,.decimals)), " %. Computed using formula: a / (a + c)", sep="")
+	.dd <- epi.tests(.TableOriginal, conf.level = 0.95)
+	texttest <- paste("\n# Sensitivity (Se) = ", fncGetConfIntText(round(100*.dd$rval$se$est,.decimals), round(100*.dd$rval$se$lower,.decimals), round(100*.dd$rval$se$upper,.decimals), .decimals), " %. Computed using formula: a / (a + c)", sep="")
 	cat(texttest)
 
-	texttest <- paste("\n# Specificity (Sp) = ", fncGetConfIntText(round(100*.dd$sp$est,.decimals), round(100*.dd$sp$lower,.decimals), round(100*.dd$sp$upper,.decimals)), " %. Computed using formula: d / (b + d)", sep="")
+	texttest <- paste("\n# Specificity (Sp) = ", fncGetConfIntText(round(100*.dd$rval$sp$est,.decimals), round(100*.dd$rval$sp$lower,.decimals), round(100*.dd$rval$sp$upper,.decimals), .decimals), " %. Computed using formula: d / (b + d)", sep="")
 	cat(texttest)	
     
-	texttest <- paste("\n# Diagnostic acuracy (% of all correct results) = ", fncGetConfIntText(round(100*.dd$diag.acc$est,.decimals), round(100*.dd$diag.acc$lower,.decimals), round(100*.dd$diag.acc$upper,.decimals)), " %. Computed using formula: (a + d) / (a + b + c + d)", sep="")
+	texttest <- paste("\n# Diagnostic acuracy (% of all correct results) = ", fncGetConfIntText(round(100*.dd$rval$diag.acc$est,.decimals), round(100*.dd$rval$diag.acc$lower,.decimals), round(100*.dd$rval$diag.acc$upper,.decimals), .decimals), " %. Computed using formula: (a + d) / (a + b + c + d)", sep="")
 	cat(texttest)
     
-	texttest <- paste("\n# Youden's index = ", fncGetConfIntText(.dd$youden$est, .dd$youden$lower, .dd$youden$upper), ". Computed using formula: Se + Sp - 1", sep="")
+	texttest <- paste("\n# Youden's index = ", fncGetConfIntText(.dd$rval$youden$est, .dd$rval$youden$lower, .dd$rval$youden$upper, .decimals), ". Computed using formula: Se + Sp - 1", sep="")
 	cat(texttest)
     
-    	texttest <- paste("\n# Likelihood ratio of a positive test = ", fncGetConfIntText(.dd$plr$est, .dd$plr$lower, .dd$plr$upper), ". Computed using formula: Se / (Sp - 1)", sep="")
+    	texttest <- paste("\n# Likelihood ratio of a positive test = ", fncGetConfIntText(.dd$rval$plr$est, .dd$rval$plr$lower, .dd$rval$plr$upper, .decimals), ". Computed using formula: Se / (Sp - 1)", sep="")
     	cat(texttest)
     
-    texttest <- paste("\n# Likelihood ratio of a negative test = ", fncGetConfIntText(.dd$nlr$est, .dd$nlr$lower, .dd$nlr$upper), ". Computed using formula: (1 - Se) / Sp", sep="")
+    texttest <- paste("\n# Likelihood ratio of a negative test = ", fncGetConfIntText(.dd$rval$nlr$est, .dd$rval$nlr$lower, .dd$rval$nlr$upper, .decimals), ". Computed using formula: (1 - Se) / Sp", sep="")
     cat(texttest)
     
-	texttest <- paste("\n# Positive predictive value = ", fncGetConfIntText(round(100*.dd$ppv$est,.decimals), round(100*.dd$ppv$lower,.decimals), round(100*.dd$ppv$upper,.decimals)), " %. Computed using formula: a / (a + b)", sep="")
+	texttest <- paste("\n# Positive predictive value = ", fncGetConfIntText(round(100*.dd$rval$ppv$est,.decimals), round(100*.dd$rval$ppv$lower,.decimals), round(100*.dd$rval$ppv$upper,.decimals), .decimals), " %. Computed using formula: a / (a + b)", sep="")
 	cat(texttest)
   
-	texttest <- paste("\n# Negative predictive value = ", fncGetConfIntText(round(100*.dd$npv$est,.decimals), round(100*.dd$npv$lower,.decimals), round(100*.dd$npv$upper,.decimals)), " %. Computed using formula: d / (c + d)", sep="")
+	texttest <- paste("\n# Negative predictive value = ", fncGetConfIntText(round(100*.dd$rval$npv$est,.decimals), round(100*.dd$rval$npv$lower,.decimals), round(100*.dd$rval$npv$upper,.decimals), .decimals), " %. Computed using formula: d / (c + d)", sep="")
 	cat(texttest)
     
-	texttest <- paste("\n# Number needed to diagnose = ", fncGetConfIntText(.dd$nnd$est, .dd$nnd$lower, .dd$nnd$upper), ". Computed using formula: 1 / [Se - (1 - Sp)]", sep="")
+	texttest <- paste("\n# Number needed to diagnose = ", fncGetConfIntText(.dd$rval$nnd$est, .dd$rval$nnd$lower, .dd$rval$nnd$upper, .decimals), ". Computed using formula: 1 / [Se - (1 - Sp)]", sep="")
 	cat(texttest)	
     
 	cat("\n# To find more about the results, and about how confidence intervals were computed, type ?epi.tests .\n")
@@ -313,7 +325,7 @@ radioButtons(name="indicators",
 # based on rcmdr code enterTable
 
 enterTableEBMCrossTab <- function(){#code from Rcmdr - John Fox, with modifications
-    Library("abind")
+    #Library("abind")
     env <- environment()
     initializeDialog(title=gettextRcmdr("Enter Two-Way Table for Evidence Based Medicine medical indicators"))
     outerTableFrame <- tkframe(top)
@@ -397,9 +409,10 @@ enterTableEBMCrossTab <- function(){#code from Rcmdr - John Fox, with modificati
         closeDialog()
         command <- paste("matrix(c(", paste(counts, collapse=","), "), ", nrows, ", ", ncols,
             ", byrow=TRUE, dimnames = list(c('", row.names[1], "', '", row.names[2], "'), c('", col.names[1], "', '", col.names[2], "')))", sep="")
-        assign(".Table", justDoIt(command), envir=.GlobalEnv)
-        logger(paste(".Table <- ", command, sep=""))
-
+        #assign(".Table", justDoIt(command), envir=.GlobalEnv)
+        #logger(paste(".Table <- ", command, sep=""))
+	      doItAndPrint(paste(".Table <- ", command, sep=""))
+	      doItAndPrint(".Table")
 		#doItAndPrint(paste("fncCrossTab(.Table[,1], .x=.Table[,2], .ylab='', .xlab='', .chisim='", chisim, "', .percents='", percents, "', .fisher='",fisher, "', .lbltest='", linearbylinear, "', .indicators='",indicators,"')", sep=""))
 		doItAndPrint(paste("fncEBMCrossTab(.table=.Table, .x='', .y='', .ylab='', .xlab='', .percents='", percents, "', .chisq='", chisq, "', .expected='", expected, "', .chisqComp='", chisqComp, "', .fisher='",fisher, "', .indicators='",indicators,"', .decimals=2)", sep=""))
 

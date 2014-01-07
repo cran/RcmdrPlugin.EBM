@@ -27,6 +27,10 @@ fncEBMPostTest(.pretest, .LR)
 The post-test probability of having the dissease.
 }
 
+\examples{
+fncEBMPostTest(.12, 5.7)
+}
+
 \author{Daniel-Corneliu Leucuta <danny.ldc@gmail.com>}
 
 \keyword{post-test probability}
