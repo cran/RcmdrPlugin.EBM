@@ -5,11 +5,11 @@
 menu    ebmMenu       topMenu         ""                                      ""                          ""    ""
 item    topMenu         cascade         "EBM"                                 ebmMenu                   ""                      ""
 
-item    ebmMenu       command         "Therapy..."              fncEBMTherapy        "factorsP(2)"    ""
-item    ebmMenu       command         "Prognosis..."              fncEBMPrognosis        "factorsP(2)"    ""
-item    ebmMenu       command         "Diagnosis..."              fncEBMDiagnosis        "factorsP(2)"    ""
+item    ebmMenu       command         "Therapy..."              fncEBMTherapy        "factorsP(2)"    "packageAvailable('RcmdrMisc')"
+item    ebmMenu       command         "Prognosis..."              fncEBMPrognosis        "factorsP(2)"    "packageAvailable('RcmdrMisc')"
+item    ebmMenu       command         "Diagnosis..."              fncEBMDiagnosis        "factorsP(2)"    "packageAvailable('RcmdrMisc')"
 
-item    ebmMenu       command         "Enter two-way table..."              enterTableEBMCrossTab        ""    ""
+item    ebmMenu       command         "Enter two-way table..."              enterTableEBMCrossTab        ""    "packageAvailable('RcmdrMisc')"
 
 item    ebmMenu       command         "Post-test probability..."              fncEBMPostTestWin        ""    ""
 

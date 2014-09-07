@@ -1,5 +1,5 @@
 # To do:  column chart/mosaic plot.
-
+# require(RcmdrMisc)
 fncGetConfIntText <- function(estimate, CIinf, CIsup, decimals=2, .faraCI=FALSE) {
 	if(.faraCI == TRUE) {
 		paste(round(estimate, decimals), " (", round(CIinf, decimals), " - ", round(CIsup, decimals), ")", sep="")
@@ -9,8 +9,14 @@ fncGetConfIntText <- function(estimate, CIinf, CIsup, decimals=2, .faraCI=FALSE)
 }
 
 fncNbPercents <- function(.Table, .decimals) {
-	.RowTable <- rowPercents(.Table, digits=.decimals)
-	cbind(.Table[,1],rowPercents(.Table)[,1])
+  
+  totals <- apply(.Table, 1, sum)
+  .RowTable <- apply(.Table, 2, function(x) round(x * 100 / totals, .decimals))
+  .RowTable <- cbind(.RowTable, rep(100, ncol(.RowTable)), totals)
+  colnames(.RowTable)[length(colnames(.RowTable)) - 1] <- "Total"
+  colnames(.RowTable)[length(colnames(.RowTable))] <- "Count"
+
+	cbind(.Table[,1],.RowTable[,1]) 
 	for(i in 1:length(.Table[,1])) {
 		for(j in 1:length(.Table[1,])) {
 			.RowTable[i,j] <- paste(.Table[i,j], " (", .RowTable[i,j], ")", sep="")
@@ -44,45 +50,37 @@ decimals <- .decimals#<--
 #assign("decimals", .decimals, envir = .GlobalEnv)
 
 if (.percents == "row") {
-  #cat("\n# Row Percentages\n")
-  command <- paste("fncNbPercents(.Table, ", .decimals, ") # Row Percentages", sep="") # to allow the table to be exported to html through Export plugin
-  doItAndPrint(paste(".TheTable <- ", command, sep=""))
-  #assign(".TheTable", justDoIt(command), envir=.GlobalEnv)
-  doItAndPrint(".TheTable")
-  #doItAndPrint(paste(".TheTable <- ", command, sep=""))
-  #doItAndPrint(".Test")
+  cat("# Row percents\n")
+  print(fncNbPercents(.Table, .decimals))
 }
 if (.percents == "column") {
-  #cat("\n# Column Percentages\n")
-  #print(t(fncNbPercents(t(.Table), .decimals)))
-  #command <- "t(fncNbPercents(t(.Table), .decimals))"
-  command <- paste("t(fncNbPercents(t(.Table), ", .decimals, ")) # Column Percentages", sep="") 
-  doItAndPrint(paste(".TheTable <- ", command, sep=""))
-  #assign(".TheTable", justDoIt(command), envir=.GlobalEnv)
-  doItAndPrint(".TheTable")
-  #doItAndPrint(paste(".TheTable <- ", command, sep=""))
-  #doItAndPrint(".Test")
+  cat("# Column percents\n")
+  print(t(fncNbPercents(t(.Table), .decimals)))
 }
 if (.percents == "total") {
-  #cat("\n# Percentages of Total\n")
-  #print(totPercents(.Table))
-  #command <- "totPercents(.Table, .decimals)"
-  command <- paste("totPercents(.Table, ", .decimals, ") # Percentages of Total", sep="") 
-  doItAndPrint(paste(".TheTable <- ", command, sep=""))
-  #assign(".TheTable", justDoIt(command), envir=.GlobalEnv)
-  doItAndPrint(".TheTable")
-  #doItAndPrint(paste(".TheTable <- ", command, sep=""))
-  #doItAndPrint(".Test")
+  cat("# Total percents\n")
+  #print(totPercents(.Table, .decimals))
+  .totTable <- .Table * 100 / sum(.Table)
+  colsum <- apply(.totTable, 2, sum)
+  rowsum <- apply(.totTable, 1, sum)
+  .totTable <- rbind(cbind(.totTable, Total = rowsum), Total = c(colsum, sum(colsum))) # code from apply examples
+  .totTable <- round(.totTable, .decimals)
+  print(.totTable)
 }
 
 
 if (.indicators != "dg") {# to avoid showing chi square test for diagnostic tests
         if (.chisq == '1') {#code from Rcmdr - John Fox
-            command <- "chisq.test(.Table, correct=FALSE)"
+            #command <- "chisq.test(.Table, correct=FALSE)"
             #logger(paste(".Test <- ", command, sep=""))
-            doItAndPrint(paste(".Test <- ", command, sep=""))
-            doItAndPrint(".Test")
-            if (.expected == '1') doItAndPrint(".Test$expected # Expected Counts")
+            #doItAndPrint(paste(".Test <- ", command, sep=""))
+            #doItAndPrint(".Test")
+            .Test <- chisq.test(.Table, correct=FALSE)
+            print(.Test)
+            if (.expected == '1') {
+              cat ("# Expected Counts\n")
+              print(.Test$expected) #doItAndPrint(".Test$expected # Expected Counts")
+            }
             warnText <- NULL
             if (0 < (nlt1 <- sum(.Test$expected < 1))) warnText <- paste(nlt1,
                 gettextRcmdr("expected frequencies are less than 1"))
@@ -91,9 +89,11 @@ if (.indicators != "dg") {# to avoid showing chi square test for diagnostic test
             if (!is.null(warnText)) Message(message=warnText,
                 type="warning")
             if (.chisqComp == '1') {
-                command <- paste("round(.Test$residuals^2, ", .decimals, ") # Chi-square Components", sep="")
-                doItAndPrint(command)
-                }
+              #command <- paste("round(.Test$residuals^2, ", .decimals, ") # Chi-square Components", sep="")
+              #doItAndPrint(command)
+              cat ("\n# Chi-square Components\n")
+              print(round(.Test$residuals^2, .decimals))
+            }
             #logger("remove(.Test)")
             #remove(.Test, envir=.GlobalEnv)
             }

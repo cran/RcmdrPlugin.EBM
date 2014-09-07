@@ -5,3 +5,4 @@ exportPattern("^[^\\.]")
 
 # Import all packages listed as Imports and others
 import(Rcmdr, stats, epiR, abind)
+#importFrom("RcmdrMisc", totPercents, rowPercents)

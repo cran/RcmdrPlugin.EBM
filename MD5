@@ -1,10 +1,10 @@
-476e8c3a1a483b7432c9ba2e0469971b *DESCRIPTION
-cfdf1f6cb4ae2c3b30d855da88505848 *NAMESPACE
-49878396553eefe9853b5dcb3c6f5cc3 *R/CrossTab.R
+ca28264ff106126421fcf87ac95aaef3 *DESCRIPTION
+30dc0658998571eef15b383328dcf56b *NAMESPACE
+3542540ffd775dfc4a5e1bcec3edda5e *R/CrossTab.R
 400d129c18a4fb94293c662b60283604 *R/globals.R
 c7bfc60cca84e7d7d6bf669085a97a5d *R/startup.R
-d7c416c310615864a817c686d315fd80 *inst/CHANGES
-73181b1e16db2db71ffa21dae189d56c *inst/etc/menus.txt
+6fcfbefe30d5aa458c9236fd95e042de *inst/CHANGES
+c43ac4c2e9ae6fe750c44f389f69f682 *inst/etc/menus.txt
 31b388be3e245bf07c22406e2e370747 *man/RcmdrPlugin.EBM-internal.Rd
 0ea174b0598199ea0410961a7d66f32d *man/RcmdrPlugin.EBM-package.Rd
 5a335c4c3379420a797be84dabea9ca4 *man/fncEBMPostTest.Rd
